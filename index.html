@@ -1,600 +1,556 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>Прага-Фушки — Допомога українцям</title>
-  <style>
-    /* Сброс */
-    * {
-      box-sizing: border-box;
-    }
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fff;
-      overflow: hidden;
-    }
-    /* Вкладки */
-    .tabs {
-      display: flex;
-      background: #FFD700;
-      justify-content: center;
-      gap: 1rem;
-      padding: 0.5rem 0;
-    }
-    .tabs button {
-      background: transparent;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      font-weight: 700;
-      font-size: 1.1rem;
-      cursor: pointer;
-      color: #222;
-      border-bottom: 3px solid transparent;
-      transition: all 0.3s ease;
-    }
-    .tabs button.active {
-      border-bottom: 3px solid #000;
-      font-weight: 900;
-    }
-    /* Контейнеры вкладок */
-    .tab-content {
-      height: calc(100vh - 52px);
-      display: none;
-      overflow: hidden;
-      position: relative;
-    }
-    .tab-content.active {
-      display: flex;
-      flex-direction: column;
-    }
-    /* --- Чат --- */
-    #chat {
-      background: url('https://i.ibb.co/fbpjfnm/Prague.jpg') no-repeat center center;
-      background-size: cover;
-      color: white;
-      text-shadow: 0 0 8px rgba(0,0,0,0.7);
-      position: relative;
-    }
-    #chat .overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1;
-    }
-    #chat-content {
-      position: relative;
-      z-index: 2;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-    }
-    #chat-header {
-      font-weight: 700;
-      font-size: 1.2rem;
-      padding: 8px;
-      background: #FFD700cc;
-      color: #000;
-      text-align: center;
-      border-radius: 5px;
-      user-select: none;
-    }
-    #messages {
-      flex-grow: 1;
-      overflow-y: auto;
-      margin-top: 10px;
-      padding: 10px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 8px;
-      font-size: 1rem;
-      line-height: 1.4;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      scroll-behavior: smooth;
-    }
-    .message {
-      max-width: 70%;
-      padding: 8px 12px;
-      border-radius: 15px;
-      word-wrap: break-word;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .message.sent {
-      align-self: flex-end;
-      background: #FFD700cc;
-      color: #000;
-      border-bottom-right-radius: 2px;
-    }
-    .message.received {
-      align-self: flex-start;
-      background: #444;
-      color: #fff;
-      border-bottom-left-radius: 2px;
-    }
-    .message img {
-      max-width: 150px;
-      max-height: 150px;
-      margin-top: 5px;
-      border-radius: 10px;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    /* Форма ввода */
-    #chat-input-container {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      background: #222;
-      padding: 10px;
-      border-radius: 10px;
-      align-items: center;
-    }
-    #text-input {
-      flex-grow: 1;
-      padding: 8px 12px;
-      font-size: 1rem;
-      border-radius: 20px;
-      border: none;
-      outline: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    #file-input {
-      display: none;
-    }
-    #btn-photo {
-      background: transparent;
-      border: none;
-      color: #FFD700;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-    #send-btn {
-      background: #FFD700;
-      border: none;
-      padding: 10px 18px;
-      font-weight: 700;
-      color: #000;
-      border-radius: 20px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.3s ease;
-    }
-    #send-btn:hover {
-      background: #e6c200;
-    }
-    /* Модальное окно регистрации */
-    #register-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-    #register-modal.active {
-      display: flex;
-    }
-    #register-form {
-      background: #fff;
-      padding: 20px 30px;
-      border-radius: 10px;
-      max-width: 350px;
-      width: 90vw;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    #register-form input {
-      padding: 8px 12px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      outline: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    #register-form button {
-      background: #FFD700;
-      border: none;
-      padding: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: background 0.3s ease;
-    }
-    #register-form button:hover {
-      background: #e6c200;
-    }
-    /* Карта */
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-    /* Информация */
-    #info-content {
-      overflow-y: auto;
-      padding: 20px;
-      font-size: 1rem;
-      line-height: 1.5;
-      background: #fff8dc;
-      color: #000;
-    }
-    #info-content h2 {
-      margin-top: 0;
-    }
-    #info-content img {
-      max-width: 100%;
-      border-radius: 12px;
-      margin: 10px 0;
-    }
-    /* Мобильная адаптация */
-    @media (max-width: 600px) {
-      .tabs {
-        flex-wrap: wrap;
-      }
-      .tabs button {
-        flex-grow: 1;
-        font-size: 1rem;
-        padding: 0.6rem 0;
-      }
-      #chat-input-container {
-        flex-direction: column;
-      }
-      #text-input {
-        width: 100%;
-        border-radius: 12px;
-      }
-      #send-btn {
-        width: 100%;
-        border-radius: 12px;
-      }
-    }
-  </style>
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    integrity="sha256-sA+Rl6P4BWh+/2ku0FgNx0H6AuYsaMPOO1Q+wV1z+0I="
-    crossorigin=""
-  />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Чат з профілем і меню</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100vh; font-family: Arial, sans-serif; display: flex; flex-direction: column;
+  }
+  #chat-container {
+    flex: 1; display: flex; flex-direction: column; max-width: 600px; margin: auto; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;
+  }
+  #profile {
+    background: #ffd700; color: #000; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; user-select: none;
+    position: relative;
+  }
+  #profile-info {
+    display: flex; align-items: center; cursor: pointer;
+  }
+  #profile-avatar {
+    width: 40px; height: 40px; border-radius: 50%; background: #ccc url('https://www.gravatar.com/avatar/?d=mp&s=40') center/cover no-repeat; margin-right: 10px;
+    flex-shrink: 0;
+  }
+  #profile-name {
+    font-weight: 700; font-size: 1.1rem; user-select: text;
+  }
+  #profile-description {
+    font-size: 0.85rem; color: #444; margin-top: 2px; user-select: text;
+  }
+  #btn-logout {
+    background: #000; color: #ffd700; border: none; border-radius: 12px; padding: 6px 14px; cursor: pointer; font-weight: 700;
+  }
+  #btn-logout:hover {
+    background: #222;
+  }
+
+  /* Выпадающее меню */
+  #profile-menu {
+    position: absolute;
+    top: 60px;
+    left: 15px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+    border-radius: 8px;
+    width: 250px;
+    display: none;
+    flex-direction: column;
+    padding: 15px;
+    z-index: 100;
+  }
+  #profile-menu.active {
+    display: flex;
+  }
+  #profile-menu label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+  #profile-menu input[type="file"] {
+    margin-bottom: 12px;
+  }
+  #profile-menu textarea {
+    width: 100%;
+    height: 60px;
+    resize: vertical;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    margin-bottom: 12px;
+  }
+  #profile-menu button, #profile-menu .menu-btn {
+    background: #ffd700;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+    user-select: none;
+  }
+  #profile-menu button:hover, #profile-menu .menu-btn:hover {
+    background: #e6c200;
+  }
+  #profile-menu .menu-btn {
+    background: none;
+    color: #555;
+    font-weight: 600;
+    padding: 6px 0;
+    border-radius: 0;
+    text-align: left;
+  }
+  #profile-menu .menu-btn:not(:last-child) {
+    border-bottom: 1px solid #eee;
+  }
+  #profile-menu .menu-btn:hover {
+    background: #ffd70022;
+  }
+
+  #messages {
+    flex: 1; padding: 10px; overflow-y: auto; background: #222; color: #fff; display: flex; flex-direction: column; gap: 8px;
+    scroll-behavior: smooth;
+  }
+  .message {
+    max-width: 70%; padding: 8px 12px; border-radius: 15px; word-wrap: break-word;
+  }
+  .sent {
+    background: #ffd700cc; color: #000; align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+  .received {
+    background: #444; color: #fff; align-self: flex-start; border-bottom-left-radius: 4px;
+  }
+  .message img {
+    max-width: 150px; max-height: 150px; border-radius: 10px; margin-top: 5px; object-fit: cover;
+  }
+  #input-container {
+    display: flex; align-items: center; padding: 10px; background: #333;
+  }
+  #text-input {
+    flex: 1; padding: 10px 15px; border-radius: 20px; border: none; outline: none; font-size: 1rem;
+  }
+  #btn-photo, #send-btn {
+    background: transparent; border: none; color: #ffd700; font-size: 1.5rem; cursor: pointer; margin-left: 10px;
+    user-select: none;
+  }
+  #send-btn {
+    color: #000; background: #ffd700; padding: 10px 18px; border-radius: 20px; font-weight: 700;
+  }
+  #send-btn:hover {
+    background: #e6c200;
+  }
+  #file-input, #avatar-file-input {
+    display: none;
+  }
+  /* Модалка регистрации */
+  #register-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
+  }
+  #register-modal.active {
+    display: flex;
+  }
+  #register-form {
+    background: #fff; padding: 20px 30px; border-radius: 10px; width: 320px; display: flex; flex-direction: column; gap: 12px;
+  }
+  #register-form input {
+    padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; outline: none;
+  }
+  #register-form button {
+    padding: 12px; background: #ffd700; border: none; font-weight: 700; cursor: pointer; border-radius: 8px;
+  }
+  #register-form button:hover {
+    background: #e6c200;
+  }
+</style>
 </head>
 <body>
-  <div class="tabs" role="tablist" aria-label="Вкладки навигации">
-    <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true" aria-controls="chat" id="tab-chat">Чат</button>
-    <button class="tab-btn" data-tab="map" role="tab" aria-selected="false" aria-controls="map" id="tab-map">Карта</button>
-    <button class="tab-btn" data-tab="info" role="tab" aria-selected="false" aria-controls="info" id="tab-info">Інформація</button>
-  </div>
 
-  <!-- Чат -->
-  <section id="chat" class="tab-content active" role="tabpanel" aria-labelledby="tab-chat" aria-live="polite">
-    <div class="overlay"></div>
-    <div id="chat-content">
-      <div id="chat-header">Шановні українці, цей сайт створений щоб допомагати нашим співвітчизникам.</div>
-      <div id="messages" aria-live="polite" aria-relevant="additions"></div>
-      <div id="chat-input-container">
-        <input id="text-input" type="text" placeholder="Введіть повідомлення..." aria-label="Текст повідомлення" autocomplete="off" />
-        <input type="file" id="file-input" accept="image/*" aria-label="Додати фото" />
-        <button id="btn-photo" title="Додати фото 📷" aria-label="Додати фото">📷</button>
-        <button id="send-btn" aria-label="Відправити повідомлення">Відправити</button>
+<div id="chat-container">
+  <div id="profile">
+    <div id="profile-info" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu" aria-label="Профіль користувача">
+      <div id="profile-avatar" title="Натисніть для меню профілю"></div>
+      <div>
+        <div id="profile-name">Гість</div>
+        <div id="profile-description" style="display:none;"></div>
       </div>
     </div>
-  </section>
+    <button id="btn-logout" style="display:none;">Вийти</button>
 
-  <!-- Карта -->
-  <section id="map" class="tab-content" role="tabpanel" aria-labelledby="tab-map">
-    <div id="map"></div>
-  </section>
+    <div id="profile-menu" role="menu" aria-label="Меню профілю">
+      <label for="avatar-file-input">Завантажити фото профілю:</label>
+      <input type="file" id="avatar-file-input" accept="image/*" aria-describedby="avatar-desc" />
+      <div id="avatar-desc" style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">Розмір не більше 2Мб</div>
 
-  <!-- Інформація -->
-  <section id="info" class="tab-content" role="tabpanel" aria-labelledby="tab-info">
-    <div id="info-content">
-      <h2>Корисна інформація для українців у Празі</h2>
-      <p>Тут зібрані важливі контакти, адреси, телефони та поради, щоб допомогти вам у складний час.</p>
-      <h3>Медицина</h3>
-      <ul>
-        <li>Лікарня Мотол — вул. V Úvalu 84, Прага 5</li>
-        <li>Поліклініка Прага 1 — вул. Štěpánská 28, Прага 1</li>
-        <li>Швидка допомога — телефон 155</li>
-      </ul>
-      <h3>Соціальні служби</h3>
-      <ul>
-        <li>OAMP Прага 1 — вул. Politických vězňů 910/10</li>
-        <li>Волонтерський центр Pomoc — вул. Lazarská 7, Прага 1</li>
-      </ul>
-      <h3>Магазини</h3>
-      <ul>
-        <li>Український магазин Pomoc — вул. Štěpánská 25, Прага 1</li>
-      </ul>
-      <h3>Юридична допомога</h3>
-      <ul>
-        <li>Консультація Pravda — вул. Václavské náměstí 21, Прага 1</li>
-      </ul>
-      <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" alt="Графіті у Празі" />
-      <p>Пам'ятайте, що підтримка — це найважливіше!</p>
+      <label for="profile-description-input">Опис профілю:</label>
+      <textarea id="profile-description-input" placeholder="Додайте опис про себе"></textarea>
+
+      <button id="save-profile-btn">Зберегти</button>
+
+      <hr style="margin:10px 0; border-color:#eee;">
+
+      <button class="menu-btn" id="menu-home">Головна</button>
+      <button class="menu-btn" id="menu-donate">Задонатити</button>
     </div>
-  </section>
-
-  <!-- Модалка регистрации -->
-  <div id="register-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
-    <form id="register-form">
-      <h2 id="register-title">Реєстрація</h2>
-      <input type="text" id="reg-nick" placeholder="Нікнейм" required autocomplete="off" />
-      <input type="email" id="reg-email" placeholder="Email" required autocomplete="off" />
-      <input type="password" id="reg-password" placeholder="Пароль" required autocomplete="off" />
-      <button type="submit">Зареєструватися</button>
-    </form>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <div id="messages" aria-live="polite" aria-relevant="additions"></div>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-    integrity="sha256-QVjd0z1Dt5IdZFRmOLmPJJsNVk9O0wWutRT6yJaaP8o="
-    crossorigin=""
-  ></script>
+  <div id="input-container">
+    <input id="text-input" type="text" placeholder="Введіть повідомлення..." aria-label="Текст повідомлення" />
+    <input type="file" id="file-input" accept="image/*" aria-label="Додати фото" />
+    <button id="btn-photo" title="Додати фото 📷" aria-label="Додати фото">📷</button>
+    <button id="send-btn" aria-label="Відправити повідомлення">Відправити</button>
+  </div>
+</div>
 
-  <script>
-    // === Firebase config ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyDV2BslF-Ll37a1XO3GEfzNMXa7YsSXL1o",
-      authDomain: "web-app-b4633.firebaseapp.com",
-      databaseURL: "https://web-app-b4633-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "web-app-b4633",
-      storageBucket: "web-app-b4633.appspot.com",
-      messagingSenderId: "1041887915171",
-      appId: "1:1041887915171:web:84d62eae54e9291b47a316",
-      measurementId: "G-C65BPE81SJ"
+<div id="register-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
+  <form id="register-form">
+    <h2 id="register-title">Реєстрація</h2>
+    <input type="text" id="reg-nick" placeholder="Нікнейм" required autocomplete="off" />
+    <input type="email" id="reg-email" placeholder="Email" required autocomplete="off" />
+    <input type="password" id="reg-password" placeholder="Пароль" required autocomplete="off" />
+    <button type="submit">Зареєструватися</button>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getDatabase, ref, push, onChildAdded, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDV2BslF-Ll37a1XO3GEfzNMXa7YsSXL1o",
+    authDomain: "web-app-b4633.firebaseapp.com",
+    databaseURL: "https://web-app-b4633-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "web-app-b4633",
+    storageBucket: "web-app-b4633.appspot.com",
+    messagingSenderId: "1041887915171",
+    appId: "1:1041887915171:web:84d62eae54e9291b47a316",
+    measurementId: "G-C65BPE81SJ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+  const storage = getStorage(app);
+
+  // Элементы UI
+  const messagesEl = document.getElementById('messages');
+  const textInput = document.getElementById('text-input');
+  const fileInput = document.getElementById('file-input');
+  const btnPhoto = document.getElementById('btn-photo');
+  const sendBtn = document.getElementById('send-btn');
+
+  const profileNameEl = document.getElementById('profile-name');
+  const profileDescEl = document.getElementById('profile-description');
+  const profileAvatarEl = document.getElementById('profile-avatar');
+  const btnLogout = document.getElementById('btn-logout');
+
+  const registerModal = document.getElementById('register-modal');
+  const registerForm = document.getElementById('register-form');
+
+  const profileMenu = document.getElementById('profile-menu');
+  const profileInfo = document.getElementById('profile-info');
+  const avatarFileInput = document.getElementById('avatar-file-input');
+  const profileDescInput = document.getElementById('profile-description-input');
+  const saveProfileBtn = document.getElementById('save-profile-btn');
+
+  const menuHomeBtn = document.getElementById('menu-home');
+  const menuDonateBtn = document.getElementById('menu-donate');
+
+  let currentUser = null;
+  let pendingMessage = null;
+
+  function escapeHTML(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // Обновить UI профиля
+  async function updateProfileUI(user) {
+    if (user) {
+      const userId = user.uid;
+      profileNameEl.textContent = user.displayName || user.email.split('@')[0];
+
+      // Попробуем подгрузить описание и фото профиля из БД
+      const userRef = ref(db, 'users/' + userId);
+      const snapshot = await new Promise((res, rej) => {
+        onChildAdded(userRef, () => {}, err => rej(err));
+        import('https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js').then(({get, child})=>{
+          get(child(userRef, '')).then(snap=>{
+            res(snap);
+          }).catch(e=>rej(e));
+        });
+      }).catch(() => null);
+
+      // Вместо сложного onChildAdded выше - используем простой get:
+      import('https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js').then(({get, child})=>{
+        get(child(userRef, '')).then(snap => {
+          if(snap.exists()) {
+            const data = snap.val();
+            if(data.description) {
+              profileDescEl.textContent = data.description;
+              profileDescEl.style.display = 'block';
+              profileDescInput.value = data.description;
+            } else {
+              profileDescEl.style.display = 'none';
+              profileDescInput.value = '';
+            }
+            if(data.avatarUrl) {
+              profileAvatarEl.style.backgroundImage = `url(${data.avatarUrl})`;
+            } else {
+              profileAvatarEl.style.backgroundImage = "url('https://www.gravatar.com/avatar/?d=mp&s=40')";
+            }
+          } else {
+            profileDescEl.style.display = 'none';
+            profileDescInput.value = '';
+            profileAvatarEl.style.backgroundImage = "url('https://www.gravatar.com/avatar/?d=mp&s=40')";
+          }
+        }).catch(() => {
+          profileDescEl.style.display = 'none';
+          profileAvatarEl.style.backgroundImage = "url('https://www.gravatar.com/avatar/?d=mp&s=40')";
+          profileDescInput.value = '';
+        });
+      });
+
+      btnLogout.style.display = 'inline-block';
+    } else {
+      profileNameEl.textContent = 'Гість';
+      profileDescEl.style.display = 'none';
+      profileDescInput.value = '';
+      profileAvatarEl.style.backgroundImage = "url('https://www.gravatar.com/avatar/?d=mp&s=40')";
+      btnLogout.style.display = 'none';
+    }
+  }
+
+  // Обработчик клика аватара - показать/скрыть меню
+  profileInfo.addEventListener('click', () => {
+    const expanded = profileInfo.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      profileMenu.classList.remove('active');
+      profileInfo.setAttribute('aria-expanded', 'false');
+    } else {
+      profileMenu.classList.add('active');
+      profileInfo.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  // Закрытие меню при клике вне его
+  document.addEventListener('click', (e) => {
+    if (!profileMenu.contains(e.target) && !profileInfo.contains(e.target)) {
+      profileMenu.classList.remove('active');
+      profileInfo.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Загрузка и сохранение аватарки
+  async function uploadAvatar(file) {
+    if(file.size > 2*1024*1024) {
+      alert("Фото не повинно бути більше 2Мб");
+      return null;
+    }
+    const avatarRef = sRef(storage, 'avatars/' + currentUser.uid + '_' + Date.now() + '_' + file.name);
+    await uploadBytes(avatarRef, file);
+    return getDownloadURL(avatarRef);
+  }
+
+  saveProfileBtn.addEventListener('click', async () => {
+    if (!currentUser) {
+      alert("Ви не авторизовані");
+      return;
+    }
+
+    let avatarUrl = null;
+    const file = avatarFileInput.files[0];
+    if (file) {
+      avatarUrl = await uploadAvatar(file);
+      if (!avatarUrl) return; // если ошибка, отменяем сохранение
+    }
+
+    const description = profileDescInput.value.trim();
+
+    // Сохраняем в базе пользователя
+    const userRef = ref(db, 'users/' + currentUser.uid);
+    const updateData = {};
+    if (avatarUrl) updateData.avatarUrl = avatarUrl;
+    updateData.description = description;
+
+    try {
+      await update(userRef, updateData);
+      alert("Профіль оновлено");
+      profileMenu.classList.remove('active');
+      profileInfo.setAttribute('aria-expanded', 'false');
+      // Обновим UI
+      if (avatarUrl) profileAvatarEl.style.backgroundImage = `url(${avatarUrl})`;
+      if (description) {
+        profileDescEl.textContent = description;
+        profileDescEl.style.display = 'block';
+      } else {
+        profileDescEl.style.display = 'none';
+      }
+      avatarFileInput.value = '';
+    } catch (e) {
+      alert("Помилка оновлення профілю: " + e.message);
+    }
+  });
+
+  // Выход из аккаунта
+  btnLogout.addEventListener('click', () => {
+    signOut(auth).then(() => {
+      currentUser = null;
+      updateProfileUI(null);
+      messagesEl.innerHTML = '';
+      alert("Ви вийшли з аккаунту");
+    });
+  });
+
+  // Отслеживаем авторизацию
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    updateProfileUI(user);
+    if (user) {
+      loadMessages();
+    } else {
+      messagesEl.innerHTML = '';
+    }
+  });
+
+  // Загрузка сообщений из базы (слушаем добавление новых)
+  function loadMessages() {
+    const messagesRef = ref(db, 'messages');
+    // Чтобы не дублировать — очистим сначала
+    messagesEl.innerHTML = '';
+
+    // Слушаем новые сообщения
+    onChildAdded(messagesRef, (snapshot) => {
+      const msg = snapshot.val();
+      addMessageToUI(msg);
+    });
+  }
+
+  // Добавление сообщения в UI
+  function addMessageToUI(msg) {
+    const div = document.createElement('div');
+    div.classList.add('message');
+    div.classList.add(msg.uid === currentUser?.uid ? 'sent' : 'received');
+
+    let content = `<strong>${escapeHTML(msg.nick)}</strong>: ${escapeHTML(msg.text || '')}`;
+    if (msg.imageUrl) {
+      content += `<br><img src="${msg.imageUrl}" alt="Фото повідомлення" />`;
+    }
+    div.innerHTML = content;
+
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Отправка сообщения
+  async function sendMessage() {
+    if (!currentUser) {
+      // Если пользователь не залогинен, показываем регистрацию
+      registerModal.classList.add('active');
+      return;
+    }
+
+    const text = textInput.value.trim();
+    const file = fileInput.files[0];
+
+    if (!text && !file) {
+      alert("Введіть повідомлення або додайте фото");
+      return;
+    }
+
+    let imageUrl = null;
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5 Мб ограничение
+        alert("Фото занадто велике (максимум 5Мб)");
+        return;
+      }
+      // Загружаем фото в storage
+      const imageRef = sRef(storage, 'message-images/' + currentUser.uid + '_' + Date.now() + '_' + file.name);
+      await uploadBytes(imageRef, file);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
+    const msgData = {
+      uid: currentUser.uid,
+      nick: currentUser.displayName || currentUser.email.split('@')[0],
+      text: text || '',
+      imageUrl: imageUrl || '',
+      timestamp: Date.now()
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-    const storage = firebase.storage();
-
-    // --- UI Elements ---
-    const tabButtons = document.querySelectorAll(".tab-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
-
-    const messagesEl = document.getElementById("messages");
-    const textInput = document.getElementById("text-input");
-    const fileInput = document.getElementById("file-input");
-    const btnPhoto = document.getElementById("btn-photo");
-    const sendBtn = document.getElementById("send-btn");
-
-    const registerModal = document.getElementById("register-modal");
-    const registerForm = document.getElementById("register-form");
-
-    // Current user
-    let currentUser = null;
-    // Pending message to send after registration
-    let pendingMessage = null;
-
-    // --- Tabs switching ---
-    tabButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        tabButtons.forEach(b => {
-          b.classList.remove("active");
-          b.setAttribute("aria-selected", "false");
-        });
-        tabContents.forEach(c => c.classList.remove("active"));
-
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
-        const tab = btn.dataset.tab;
-        document.getElementById(tab).classList.add("active");
-      });
-    });
-
-    // --- Load messages from localStorage and Firebase ---
-    function loadMessages() {
-      messagesEl.innerHTML = "";
-      const localMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
-      localMessages.forEach(msg => addMessageToDOM(msg));
-
-      db.ref('messages').on('child_added', snapshot => {
-        const msg = snapshot.val();
-        addMessageToDOM(msg);
-      });
+    try {
+      await push(ref(db, 'messages'), msgData);
+      textInput.value = '';
+      fileInput.value = '';
+    } catch (e) {
+      alert("Помилка відправки повідомлення: " + e.message);
     }
+  }
 
-    // Add message to DOM with duplication check
-    const messageIds = new Set();
-    function addMessageToDOM(msg) {
-      if (messageIds.has(msg.id)) return;
-      messageIds.add(msg.id);
+  // Кнопка отправить
+  sendBtn.addEventListener('click', sendMessage);
 
-      const div = document.createElement("div");
-      div.classList.add("message");
-      div.classList.add(msg.uid === (currentUser ? currentUser.uid : "") ? "sent" : "received");
-
-      let content = "";
-      if (msg.nick) content += `<strong>${escapeHTML(msg.nick)}:</strong><br>`;
-      if (msg.text) content += escapeHTML(msg.text);
-      if (msg.image) content += `<br><img src="${msg.image}" alt="Фото" />`;
-
-      div.innerHTML = content;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    // Escape HTML special characters
-    function escapeHTML(str) {
-      if (!str) return "";
-      return str.replace(/[&<>"']/g, m => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      }[m]));
-    }
-
-    // Open file dialog for photo upload
-    btnPhoto.addEventListener("click", () => {
-      fileInput.click();
-    });
-
-    // Check current auth state
-    async function checkAuth() {
-      return new Promise(resolve => {
-        auth.onAuthStateChanged(user => {
-          currentUser = user;
-          resolve(user);
-        });
-      });
-    }
-
-    // Upload image to Firebase Storage and get URL
-    async function uploadImage(file) {
-      if (!storage) {
-        alert("Firebase Storage не підключений!");
-        throw new Error("Firebase Storage не підключений");
-      }
-
-      const storageRef = storage.ref();
-      const imageRef = storageRef.child(`images/${Date.now()}_${file.name}`);
-
-      try {
-        await imageRef.put(file);
-// Ждём загрузки файла
-        await imageRef.put(file);
-        // Получаем ссылку на загруженный файл
-        const url = await imageRef.getDownloadURL();
-        return url;
-      } catch (error) {
-        alert("Помилка завантаження фото: " + error.message);
-        throw error;
-      }
-    }
-
-    // Отправка сообщения (текст + опционально фото)
-    async function sendMessage(text, file = null) {
-      // Проверяем авторизацию
-      if (!currentUser) {
-        // Если не авторизован — показываем модалку регистрации
-        pendingMessage = { text, file };
-        registerModal.classList.add("active");
-        return;
-      }
-
-      // Подготовим объект сообщения
-      let imageUrl = null;
-      if (file) {
-        // Загрузка фото и получение URL
-        imageUrl = await uploadImage(file);
-      }
-
-      const messageData = {
-        id: Date.now() + "_" + currentUser.uid,
-        uid: currentUser.uid,
-        nick: currentUser.displayName || currentUser.email.split('@')[0],
-        text: text || "",
-        image: imageUrl || null,
-        timestamp: Date.now()
-      };
-
-      try {
-        await db.ref("messages").push(messageData);
-        // Локально сохраняем для быстрого отображения
-        let localMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
-        localMessages.push(messageData);
-        localStorage.setItem("chatMessages", JSON.stringify(localMessages));
-        addMessageToDOM(messageData);
-      } catch (error) {
-        alert("Помилка відправки повідомлення: " + error.message);
-      }
-    }
-
-    // Обработка клика кнопки отправки
-    sendBtn.addEventListener("click", async () => {
-      const text = textInput.value.trim();
-      const file = fileInput.files[0] || null;
-
-      if (!text && !file) {
-        alert("Введіть повідомлення або виберіть фото");
-        return;
-      }
-
-      sendBtn.disabled = true;
-      try {
-        await sendMessage(text, file);
-        textInput.value = "";
-        fileInput.value = "";
-      } catch (e) {
-        // Ошибки уже показываются в sendMessage
-      }
-      sendBtn.disabled = false;
-    });
-
-    // Обработка регистрации
-    registerForm.addEventListener("submit", async (e) => {
+  // Клавиша Enter для отправки (если фокус на поле ввода)
+  textInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      sendMessage();
+    }
+  });
 
-      const nick = registerForm["reg-nick"].value.trim();
-      const email = registerForm["reg-email"].value.trim();
-      const password = registerForm["reg-password"].value;
+  // Кнопка фото - открыть file input
+  btnPhoto.addEventListener('click', () => {
+    fileInput.click();
+  });
 
-      if (!nick || !email || !password) {
-        alert("Заповніть всі поля");
-        return;
-      }
+  // При выборе фото покажем название (можно добавить и предпросмотр, но сейчас просто так)
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      sendBtn.textContent = 'Відправити 📷';
+    } else {
+      sendBtn.textContent = 'Відправити';
+    }
+  });
 
-      try {
-        // Создаем пользователя
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+  // Обработка регистрации из модалки
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nick = document.getElementById('reg-nick').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
 
-        // Обновляем профиль — записываем никнейм
-        await user.updateProfile({ displayName: nick });
+    if (!nick || !email || !password) {
+      alert("Будь ласка, заповніть всі поля");
+      return;
+    }
 
-        currentUser = user;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: nick });
+      currentUser = userCredential.user;
 
-        registerModal.classList.remove("active");
-        registerForm.reset();
+      // Сохраняем описание и аватар пустые, можно потом заполнить
+      await update(ref(db, 'users/' + currentUser.uid), {
+        description: '',
+        avatarUrl: ''
+      });
 
-        // Если было отложенное сообщение — отправляем его
-        if (pendingMessage) {
-          await sendMessage(pendingMessage.text, pendingMessage.file);
-          pendingMessage = null;
-        }
-      } catch (error) {
-        alert("Помилка реєстрації: " + error.message);
-      }
-    });
+      updateProfileUI(currentUser);
+      registerModal.classList.remove('active');
+      registerForm.reset();
+      alert("Реєстрація пройшла успішно! Тепер можете відправляти повідомлення.");
+    } catch (error) {
+      alert("Помилка реєстрації: " + error.message);
+    }
+  });
 
-    // Закрытие модалки по клику вне формы
-    registerModal.addEventListener("click", (e) => {
-      if (e.target === registerModal) {
-        registerModal.classList.remove("active");
-        pendingMessage = null;
-      }
-    });
+  // Закрыть модалку регистрации при клике вне формы
+  registerModal.addEventListener('click', (e) => {
+    if (e.target === registerModal) {
+      registerModal.classList.remove('active');
+    }
+  });
 
-    // Инициализация карты Leaflet
-    const map = L.map('map').setView([50.0755, 14.4378], 13);
+  // Кнопки меню (пока просто заглушки)
+  menuHomeBtn.addEventListener('click', () => alert('Головна сторінка (заглушка)'));
+  menuDonateBtn.addEventListener('click', () => alert('Задонатити (заглушка)'));
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+</script>
 
-    // Пример маркера
-    L.marker([50.0755, 14.4378]).addTo(map)
-      .bindPopup('Прага, центр міста')
-      .openPopup();
-
-    // Загружаем уже авторизованного пользователя (если есть)
-    checkAuth().then(() => {
-      loadMessages();
-    });
-  </script>
 </body>
 </html>
+
