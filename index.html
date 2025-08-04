@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -50,7 +49,6 @@
       display: flex;
       flex-direction: column;
     }
-
     /* --- Чат --- */
     #chat {
       background: url('https://i.ibb.co/fbpjfnm/Prague.jpg') no-repeat center center;
@@ -265,21 +263,20 @@
   />
 </head>
 <body>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="chat">Чат</button>
-    <button class="tab-btn" data-tab="map">Карта</button>
-    <button class="tab-btn" data-tab="info">Інформація</button>
+  <div class="tabs" role="tablist" aria-label="Вкладки навигации">
+    <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true" aria-controls="chat" id="tab-chat">Чат</button>
+    <button class="tab-btn" data-tab="map" role="tab" aria-selected="false" aria-controls="map" id="tab-map">Карта</button>
+    <button class="tab-btn" data-tab="info" role="tab" aria-selected="false" aria-controls="info" id="tab-info">Інформація</button>
   </div>
 
   <!-- Чат -->
-  <section id="chat" class="tab-content active" aria-label="Чат">
+  <section id="chat" class="tab-content active" role="tabpanel" aria-labelledby="tab-chat" aria-live="polite">
     <div class="overlay"></div>
     <div id="chat-content">
       <div id="chat-header">Шановні українці, цей сайт створений щоб допомагати нашим співвітчизникам.</div>
       <div id="messages" aria-live="polite" aria-relevant="additions"></div>
       <div id="chat-input-container">
-        <input id="text-input" type="text" placeholder="Введіть повідомлення..." aria-label="Текст повідомлення" />
+        <input id="text-input" type="text" placeholder="Введіть повідомлення..." aria-label="Текст повідомлення" autocomplete="off" />
         <input type="file" id="file-input" accept="image/*" aria-label="Додати фото" />
         <button id="btn-photo" title="Додати фото 📷" aria-label="Додати фото">📷</button>
         <button id="send-btn" aria-label="Відправити повідомлення">Відправити</button>
@@ -288,12 +285,12 @@
   </section>
 
   <!-- Карта -->
-  <section id="map" class="tab-content" aria-label="Карта допомоги">
+  <section id="map" class="tab-content" role="tabpanel" aria-labelledby="tab-map">
     <div id="map"></div>
   </section>
 
-  <!-- Информация -->
-  <section id="info" class="tab-content" aria-label="Корисна інформація">
+  <!-- Інформація -->
+  <section id="info" class="tab-content" role="tabpanel" aria-labelledby="tab-info">
     <div id="info-content">
       <h2>Корисна інформація для українців у Празі</h2>
       <p>Тут зібрані важливі контакти, адреси, телефони та поради, щоб допомогти вам у складний час.</p>
@@ -336,6 +333,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <!-- Leaflet JS -->
   <script
@@ -351,53 +349,64 @@
       authDomain: "web-app-b4633.firebaseapp.com",
       databaseURL: "https://web-app-b4633-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "web-app-b4633",
-      storageBucket: "web-app-b4633.firebasestorage.app",
+      storageBucket: "web-app-b4633.appspot.com",
       messagingSenderId: "1041887915171",
       appId: "1:1041887915171:web:84d62eae54e9291b47a316",
       measurementId: "G-C65BPE81SJ"
     };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
+    const storage = firebase.storage();
 
-    // --- Переключение вкладок ---
+    // --- UI Elements ---
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabContents = document.querySelectorAll(".tab-content");
-    tabButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        tabButtons.forEach(b => b.classList.remove("active"));
-        tabContents.forEach(c => c.classList.remove("active"));
-        btn.classList.add("active");
-        const tab = btn.dataset.tab;
-        document.getElementById(tab).classList.add("active");
-      });
-    });
 
-    // --- Чат ---
     const messagesEl = document.getElementById("messages");
     const textInput = document.getElementById("text-input");
     const fileInput = document.getElementById("file-input");
     const btnPhoto = document.getElementById("btn-photo");
     const sendBtn = document.getElementById("send-btn");
 
-    // Пользователь (ник) после регистрации или анонимный
-    let currentUser = null;
+    const registerModal = document.getElementById("register-modal");
+    const registerForm = document.getElementById("register-form");
 
-    // Загрузка сообщений из localStorage и Firebase Realtime Database
-    async function loadMessages() {
+    // Current user
+    let currentUser = null;
+    // Pending message to send after registration
+    let pendingMessage = null;
+
+    // --- Tabs switching ---
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        tabButtons.forEach(b => {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+        });
+        tabContents.forEach(c => c.classList.remove("active"));
+
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+        const tab = btn.dataset.tab;
+        document.getElementById(tab).classList.add("active");
+      });
+    });
+
+    // --- Load messages from localStorage and Firebase ---
+    function loadMessages() {
       messagesEl.innerHTML = "";
-      // Сначала localStorage
       const localMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
       localMessages.forEach(msg => addMessageToDOM(msg));
 
-      // Подписка на Firebase DB
       db.ref('messages').on('child_added', snapshot => {
         const msg = snapshot.val();
         addMessageToDOM(msg);
       });
     }
 
-    // Добавить сообщение в DOM (с проверкой на дубликаты)
+    // Add message to DOM with duplication check
     const messageIds = new Set();
     function addMessageToDOM(msg) {
       if (messageIds.has(msg.id)) return;
@@ -417,206 +426,175 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // Экранирование HTML для безопасности
+    // Escape HTML special characters
     function escapeHTML(str) {
       if (!str) return "";
-      return str.replace(/[&<>"']/g, function(m) {
-        return {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        }[m];
-      });
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
     }
 
-    // Кнопка фото открывает диалог выбора файла
+    // Open file dialog for photo upload
     btnPhoto.addEventListener("click", () => {
       fileInput.click();
     });
 
-    // Проверка, зарегистрирован ли пользователь
+    // Check current auth state
     async function checkAuth() {
       return new Promise(resolve => {
         auth.onAuthStateChanged(user => {
-          if (user) {
-            currentUser = user;
-            resolve(user);
-          } else {
-            currentUser = null;
-            resolve(null);
-          }
+          currentUser = user;
+          resolve(user);
         });
       });
     }
 
-    // Отправка сообщения (с регистрацией, если нужно)
-    sendBtn.addEventListener("click", async () => {
-      const text = textInput.value.trim();
-      const file = fileInput.files[0];
+    // Upload image to Firebase Storage and get URL
+    async function uploadImage(file) {
+      if (!storage) {
+        alert("Firebase Storage не підключений!");
+        throw new Error("Firebase Storage не підключений");
+      }
 
-      if (!text && !file) return;
+      const storageRef = storage.ref();
+      const imageRef = storageRef.child(`images/${Date.now()}_${file.name}`);
 
-      await checkAuth();
-            if (!currentUser) {
-        // Открыть модалку регистрации
+      try {
+        await imageRef.put(file);
+// Ждём загрузки файла
+        await imageRef.put(file);
+        // Получаем ссылку на загруженный файл
+        const url = await imageRef.getDownloadURL();
+        return url;
+      } catch (error) {
+        alert("Помилка завантаження фото: " + error.message);
+        throw error;
+      }
+    }
+
+    // Отправка сообщения (текст + опционально фото)
+    async function sendMessage(text, file = null) {
+      // Проверяем авторизацию
+      if (!currentUser) {
+        // Если не авторизован — показываем модалку регистрации
+        pendingMessage = { text, file };
         registerModal.classList.add("active");
         return;
       }
 
-      // Отправляем сообщение
+      // Подготовим объект сообщения
       let imageUrl = null;
-
       if (file) {
+        // Загрузка фото и получение URL
         imageUrl = await uploadImage(file);
       }
 
       const messageData = {
-        id: Date.now() + "-" + Math.random().toString(36).substr(2, 9),
+        id: Date.now() + "_" + currentUser.uid,
         uid: currentUser.uid,
-        nick: currentUser.displayName || currentUser.email || "Анонім",
+        nick: currentUser.displayName || currentUser.email.split('@')[0],
         text: text || "",
-        image: imageUrl,
+        image: imageUrl || null,
         timestamp: Date.now()
       };
 
-      // Сохраняем в Firebase DB
-      db.ref("messages/" + messageData.id).set(messageData);
-
-      // Сохраняем локально для offline (по желанию)
-      let localMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
-      localMessages.push(messageData);
-      localStorage.setItem("chatMessages", JSON.stringify(localMessages));
-
-      // Очистить инпуты
-      textInput.value = "";
-      fileInput.value = "";
-
-      // Добавить в DOM (сразу)
-      addMessageToDOM(messageData);
-    });
-
-    // Загрузка фото в Firebase Storage
-    async function uploadImage(file) {
-      // Здесь нужно подключить Firebase Storage
-      // Для простоты — загружаем на сервер через Storage SDK
-      // В этом примере пока загружаем через Base64 в RealtimeDB (можно улучшить)
-      
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          const base64data = evt.target.result;
-          // Можно сразу использовать base64 как src изображения
-          resolve(base64data);
-        };
-        reader.onerror = function(err) {
-          alert("Помилка при завантаженні фото.");
-          reject(err);
-        };
-        reader.readAsDataURL(file);
-      });
+      try {
+        await db.ref("messages").push(messageData);
+        // Локально сохраняем для быстрого отображения
+        let localMessages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
+        localMessages.push(messageData);
+        localStorage.setItem("chatMessages", JSON.stringify(localMessages));
+        addMessageToDOM(messageData);
+      } catch (error) {
+        alert("Помилка відправки повідомлення: " + error.message);
+      }
     }
 
-    // Модалка регистрации
-    const registerModal = document.getElementById("register-modal");
-    const registerForm = document.getElementById("register-form");
+    // Обработка клика кнопки отправки
+    sendBtn.addEventListener("click", async () => {
+      const text = textInput.value.trim();
+      const file = fileInput.files[0] || null;
 
+      if (!text && !file) {
+        alert("Введіть повідомлення або виберіть фото");
+        return;
+      }
+
+      sendBtn.disabled = true;
+      try {
+        await sendMessage(text, file);
+        textInput.value = "";
+        fileInput.value = "";
+      } catch (e) {
+        // Ошибки уже показываются в sendMessage
+      }
+      sendBtn.disabled = false;
+    });
+
+    // Обработка регистрации
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const nick = document.getElementById("reg-nick").value.trim();
-      const email = document.getElementById("reg-email").value.trim();
-      const password = document.getElementById("reg-password").value.trim();
+
+      const nick = registerForm["reg-nick"].value.trim();
+      const email = registerForm["reg-email"].value.trim();
+      const password = registerForm["reg-password"].value;
 
       if (!nick || !email || !password) {
-        alert("Всі поля обов'язкові");
+        alert("Заповніть всі поля");
         return;
       }
 
       try {
-        // Создаем пользователя в Firebase Auth
+        // Создаем пользователя
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        // Обновляем профиль с ником
+        // Обновляем профиль — записываем никнейм
         await user.updateProfile({ displayName: nick });
 
         currentUser = user;
 
-        // Закрыть модалку
         registerModal.classList.remove("active");
         registerForm.reset();
 
-        alert("Реєстрація пройшла успішно! Тепер можете писати в чат.");
-
+        // Если было отложенное сообщение — отправляем его
+        if (pendingMessage) {
+          await sendMessage(pendingMessage.text, pendingMessage.file);
+          pendingMessage = null;
+        }
       } catch (error) {
         alert("Помилка реєстрації: " + error.message);
       }
     });
 
-    // Закрытие модалки при клике вне формы
+    // Закрытие модалки по клику вне формы
     registerModal.addEventListener("click", (e) => {
       if (e.target === registerModal) {
         registerModal.classList.remove("active");
+        pendingMessage = null;
       }
     });
 
     // Инициализация карты Leaflet
-    const map = L.map("map").setView([50.087, 14.421], 13); // Координаты Праги
+    const map = L.map('map').setView([50.0755, 14.4378], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Маркеры помощи (пример 20+)
-    const helpPoints = [
-      {
-        name: "Лікарня Мотол",
-        coords: [50.0497, 14.3866],
-        desc: "Головна лікарня Праги."
-      },
-      {
-        name: "Поліклініка Прага 1",
-        coords: [50.0833, 14.4171],
-        desc: "Поліклініка для мешканців центру міста."
-      },
-      {
-        name: "OAMP Прага 1",
-        coords: [50.0835, 14.4112],
-        desc: "Офіс соціальних служб."
-      },
-      {
-        name: "Волонтерський центр Pomoc",
-        coords: [50.0830, 14.4160],
-        desc: "Допомога біженцям та волонтерство."
-      },
-      // ... Добавь сюда остальные маркеры по необходимости
-      {
-        name: "Український магазин Pomoc",
-        coords: [50.0840, 14.4175],
-        desc: "Продукти з України."
-      },
-      {
-        name: "Консультація Pravda",
-        coords: [50.0828, 14.4200],
-        desc: "Юридична допомога для українців."
-      },
-      {
-        name: "Швидка допомога",
-        coords: [50.0875, 14.4210],
-        desc: "Телефон 155"
-      },
-      // Добавьте еще 15-20 точек, чтобы было много
-    ];
+    // Пример маркера
+    L.marker([50.0755, 14.4378]).addTo(map)
+      .bindPopup('Прага, центр міста')
+      .openPopup();
 
-    helpPoints.forEach(point => {
-      const marker = L.marker(point.coords).addTo(map);
-      marker.bindPopup(`<b>${point.name}</b><br>${point.desc}`);
+    // Загружаем уже авторизованного пользователя (если есть)
+    checkAuth().then(() => {
+      loadMessages();
     });
-
-    // Загружаем сообщения при старте
-    loadMessages();
-
   </script>
 </body>
 </html>
