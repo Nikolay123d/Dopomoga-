@@ -1,220 +1,228 @@
-<!DOCTYPE html><html lang="cs">
+<!DOCTYPE html>
+<html lang="cs">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pomocná Mapa Prahy</title>
-  <script type="module">
-    // Firebase initialization
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";const firebaseConfig = {
-  apiKey: "AIzaSyDV2BslF-Ll37a1XO3GEfzNMXa7YsSXL1o",
-  authDomain: "web-app-b4633.firebaseapp.com",
-  databaseURL: "https://web-app-b4633-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "web-app-b4633",
-  storageBucket: "web-app-b4633.firebasestorage.app",
-  messagingSenderId: "1041887915171",
-  appId: "1:1041887915171:web:84d62eae54e9291b47a316",
-  measurementId: "G-C65BPE81SJ"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const chatRef = ref(db, "chat");
-
-let nickname = '';
-
-document.addEventListener('DOMContentLoaded', () => {
-  const regForm = document.getElementById('regForm');
-  const registrationForm = document.getElementById('registration-form');
-  const messagesDiv = document.getElementById('messages');
-  const messageInput = document.getElementById('message-input');
-  const sendButton = document.getElementById('send-button');
-  const imageInput = document.getElementById('image-input');
-
-  regForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    nickname = document.getElementById('nick').value || ('Uživatel' + Math.floor(Math.random() * 10000));
-    registrationForm.style.display = 'none';
-  });
-
-  sendButton.addEventListener('click', () => {
-    const msg = messageInput.value;
-    if (msg.trim() !== '') {
-      push(chatRef, { user: nickname, text: msg });
-      messageInput.value = '';
-    }
-  });
-
-  imageInput.addEventListener('change', function () {
-    const file = imageInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        push(chatRef, { user: nickname, image: e.target.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  onChildAdded(chatRef, (data) => {
-    const val = data.val();
-    const item = document.createElement('p');
-    item.innerHTML = `<strong>${val.user}:</strong> ${val.text || ''}`;
-    if (val.image) {
-      const img = document.createElement('img');
-      img.src = val.image;
-      img.style.width = '100px';
-      item.appendChild(document.createElement('br'));
-      item.appendChild(img);
-    }
-    messagesDiv.appendChild(item);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
-});
-
-  </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prague Chat Map</title>
   <style>
-    body, html {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
       font-family: Arial, sans-serif;
-    }
-    #chat-container {
       background: url('https://i.ibb.co/fbpjfnm/Prague.jpg') no-repeat center center fixed;
       background-size: cover;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 100vh;
-      padding: 10px;
-      box-sizing: border-box;
-      color: white;
     }
-    #messages {
-      flex: 1;
+    .chat-container {
+      backdrop-filter: blur(8px);
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 1rem;
+      max-width: 600px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .chat-messages {
+      height: 300px;
       overflow-y: auto;
-      margin-bottom: 10px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 10px;
+      background: rgba(255,255,255,0.9);
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
     }
-    #input-container {
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 5px;
+    .map-container {
+      height: 400px;
+      width: 100%;
+      background: #fff;
+      margin-top: 1rem;
       border-radius: 10px;
+      overflow: hidden;
     }
-    #message-input {
-      flex: 1;
-      padding: 10px;
+    .form-group {
+      margin-bottom: 0.5rem;
+    }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #sendBtn {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
       border: none;
-      border-radius: 10px;
-      margin-right: 5px;
-    }
-    #send-button, #image-upload-button {
       background: #007bff;
       color: white;
-      border: none;
-      border-radius: 10px;
-      padding: 10px;
-      cursor: pointer;
-      margin-left: 5px;
-    }
-    #registration-form {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #registration-form form {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      color: black;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    #map {
-      height: 100vh;
-      display: none;
-    }
-    #buttons {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1001;
-    }
-    #buttons button {
-      margin-left: 5px;
-      padding: 10px;
-      background: white;
-      border: none;
       border-radius: 5px;
       cursor: pointer;
+    }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .hotkeys {
+      margin: 1rem auto;
+      text-align: center;
+    }
+    .hotkeys button {
+      margin: 0.2rem;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 5px;
+      background-color: #f0f0f0;
+      cursor: pointer;
+    }
+    .chat-image {
+      max-width: 100%;
+      margin-top: 0.5rem;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="registration-form">
-    <form id="regForm">
-      <label>Nick:</label>
-      <input type="text" id="nick" required>
-      <label>Email:</label>
-      <input type="email" id="email" required>
-      <label>Password:</label>
-      <input type="password" id="password" required>
-      <button type="submit">Zaregistrovat</button>
-    </form>
-  </div>  <div id="chat-container">
-    <div id="buttons">
-      <button onclick="showChat()">Chat</button>
-      <button onclick="showMap()">Mapa</button>
+  <div class="chat-container">
+    <div id="chatMessages" class="chat-messages"></div>
+    <div id="registerForm">
+      <div class="form-group">
+        <input type="text" id="nickname" placeholder="Nick" />
+      </div>
+      <div class="form-group">
+        <input type="email" id="email" placeholder="Email" />
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" />
+      </div>
+      <button id="registerBtn">Register</button>
     </div>
-    <div id="messages"></div>
-    <div id="input-container">
-      <input type="text" id="message-input" placeholder="Zpráva...">
-      <button id="image-upload-button" onclick="document.getElementById('image-input').click()">📷</button>
-      <input type="file" id="image-input" style="display:none" accept="image/*">
-      <button id="send-button">Odeslat</button>
+    <div id="messageSection" style="display: none;">
+      <div class="controls">
+        <input type="text" id="messageInput" placeholder="Write a message..." />
+        <label for="imageInput" style="cursor:pointer; font-size: 24px;">📷</label>
+        <input type="file" id="imageInput" style="display:none;" accept="image/*" />
+        <button id="sendBtn">Send</button>
+      </div>
+      <div id="imagePreview"></div>
     </div>
-  </div>  <div id="map"></div>  <script>
-    function showChat() {
-      document.getElementById('map').style.display = 'none';
-      document.getElementById('chat-container').style.display = 'flex';
-    }
+  </div>
 
-    function showMap() {
-      document.getElementById('chat-container').style.display = 'none';
-      document.getElementById('map').style.display = 'block';
-      initMap();
-    }
+  <div class="hotkeys">
+    <button>🧑‍⚖️ Юристы</button>
+    <button>🚑 Медицина</button>
+    <button>🤝 Волонтёры</button>
+    <button>📦 Гуманитарка</button>
+    <button>📍 Убежища</button>
+  </div>
 
+  <div class="map-container" id="map"></div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDV2BslF-Ll37a1XO3GEfzNMXa7YsSXL1o",
+      authDomain: "web-app-b4633.firebaseapp.com",
+      databaseURL: "https://web-app-b4633-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "web-app-b4633",
+      storageBucket: "web-app-b4633.appspot.com",
+      messagingSenderId: "1041887915171",
+      appId: "1:1041887915171:web:84d62eae54e9291b47a316",
+      measurementId: "G-C65BPE81SJ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const chatRef = ref(db, "messages");
+
+    let nickname = "";
+
+    document.getElementById("registerBtn").onclick = () => {
+      nickname = document.getElementById("nickname").value;
+      document.getElementById("registerForm").style.display = "none";
+      document.getElementById("messageSection").style.display = "block";
+    };
+
+    document.getElementById("sendBtn").onclick = () => {
+      const message = document.getElementById("messageInput").value;
+      const imageInput = document.getElementById("imageInput");
+      if (message || imageInput.files.length > 0) {
+        const msgObj = {
+          user: nickname,
+          text: message,
+          timestamp: Date.now(),
+        };
+
+        if (imageInput.files.length > 0) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            msgObj.image = e.target.result;
+            push(chatRef, msgObj);
+          };
+          reader.readAsDataURL(imageInput.files[0]);
+          imageInput.value = "";
+        } else {
+          push(chatRef, msgObj);
+        }
+        document.getElementById("messageInput").value = "";
+        document.getElementById("imagePreview").innerHTML = "";
+      }
+    };
+
+    document.getElementById("imageInput").onchange = (event) => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById("imagePreview").innerHTML = `<img class='chat-image' src='${e.target.result}' />`;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    onChildAdded(chatRef, (data) => {
+      const msg = data.val();
+      const div = document.createElement("div");
+      div.innerHTML = `<strong>${msg.user}</strong>: ${msg.text || ""}`;
+      if (msg.image) {
+        div.innerHTML += `<br/><img class='chat-image' src='${msg.image}' />`;
+      }
+      document.getElementById("chatMessages").appendChild(div);
+    });
+  </script>
+
+  <!-- Google Maps -->
+  <script>
     function initMap() {
-      const prague = { lat: 50.0755, lng: 14.4378 };
       const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 12,
-        center: prague,
-        styles: [],
+        zoom: 13,
+        center: { lat: 50.0755, lng: 14.4378 },
       });
-      const categories = [
-        { title: 'Mediální pomoc', position: { lat: 50.080, lng: 14.43 } },
-        { title: 'Právníci', position: { lat: 50.09, lng: 14.44 } },
-        { title: 'Volunteři', position: { lat: 50.07, lng: 14.45 } },
-        { title: 'Pomoc', position: { lat: 50.08, lng: 14.42 } }
+
+      const locations = [
+        { lat: 50.085, lng: 14.42, label: "M" },
+        { lat: 50.08, lng: 14.43, label: "Ю" },
+        { lat: 50.077, lng: 14.45, label: "В" },
+        { lat: 50.075, lng: 14.44, label: "П" },
+        { lat: 50.078, lng: 14.41, label: "S" },
+        { lat: 50.073, lng: 14.435, label: "G" },
+        { lat: 50.081, lng: 14.438, label: "D" },
+        { lat: 50.076, lng: 14.432, label: "C" },
+        { lat: 50.074, lng: 14.429, label: "B" },
+        { lat: 50.072, lng: 14.427, label: "A" },
+        { lat: 50.071, lng: 14.43, label: "Z" },
+        { lat: 50.07, lng: 14.434, label: "X" },
+        { lat: 50.069, lng: 14.437, label: "Y" },
+        { lat: 50.068, lng: 14.44, label: "R" },
+        { lat: 50.067, lng: 14.445, label: "E" },
       ];
-      categories.forEach(cat => {
-        new google.maps.Marker({ position: cat.position, map, title: cat.title });
+
+      locations.forEach(loc => {
+        new google.maps.Marker({
+          position: { lat: loc.lat, lng: loc.lng },
+          map,
+          label: loc.label,
+        });
       });
     }
-  </script></body>
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
+</body>
 </html>
