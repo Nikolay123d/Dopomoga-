@@ -1,61 +1,122 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Допомога | Прага</title>
-  <link rel="stylesheet" href="css/style.css" />
+// Firebase инициализация
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+import {
+  getDatabase, ref, push, onChildAdded
+} from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+import {
+  getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js"></script>
-</head>
-<body>
-  <header>
-    <div class="user-info">
-      <img id="userPhoto" src="img/default-avatar.png" alt="Аватар">
-      <span id="username">Гість</span>
+// Твой Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDVW5HTBG...",
+  authDomain: "chatpraha-xxxx.firebaseapp.com",
+  projectId: "chatpraha-xxxx",
+  storageBucket: "chatpraha-xxxx.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123",
+  databaseURL: "https://chatpraha-xxxx-default-rtdb.firebaseio.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// DOM элементы
+const chatTab = document.getElementById("chat-tab");
+const mapTab = document.getElementById("map-tab");
+const infoTab = document.getElementById("info-tab");
+
+const chatScreen = document.getElementById("chat-screen");
+const mapScreen = document.getElementById("map-screen");
+const infoScreen = document.getElementById("info-screen");
+
+const messageInput = document.getElementById("message-input");
+const sendBtn = document.getElementById("send-btn");
+const fileInput = document.getElementById("file-input");
+const messagesContainer = document.getElementById("messages");
+const modal = document.getElementById("auth-modal");
+const loginBtn = document.getElementById("login-btn");
+
+let currentUser = null;
+
+// Вкладки
+chatTab.onclick = () => {
+  showTab("chat");
+};
+mapTab.onclick = () => {
+  showTab("map");
+};
+infoTab.onclick = () => {
+  showTab("info");
+};
+
+function showTab(tab) {
+  chatScreen.classList.add("hidden");
+  mapScreen.classList.add("hidden");
+  infoScreen.classList.add("hidden");
+
+  if (tab === "chat") chatScreen.classList.remove("hidden");
+  if (tab === "map") mapScreen.classList.remove("hidden");
+  if (tab === "info") infoScreen.classList.remove("hidden");
+}
+
+// Авторизация
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    document.getElementById("avatar").src = user.photoURL || "img/avatar.png";
+    document.getElementById("username").textContent = user.displayName || "Користувач";
+    modal.style.display = "none";
+  } else {
+    currentUser = null;
+    modal.style.display = "flex";
+  }
+});
+
+loginBtn.onclick = () => {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      modal.style.display = "none";
+    })
+    .catch((error) => {
+      alert("Помилка авторизації");
+    });
+};
+
+// Отправка сообщений
+sendBtn.onclick = () => {
+  if (!currentUser) {
+    modal.style.display = "flex";
+    return;
+  }
+
+  const text = messageInput.value;
+  const file = fileInput.files[0];
+
+  const message = {
+    text: text,
+    sender: currentUser.displayName || "Користувач",
+    avatar: currentUser.photoURL || "img/avatar.png",
+    timestamp: Date.now()
+  };
+
+  push(ref(db, "messages"), message);
+  messageInput.value = "";
+};
+
+// Загрузка сообщений
+onChildAdded(ref(db, "messages"), (snapshot) => {
+  const msg = snapshot.val();
+  const div = document.createElement("div");
+  div.className = "message";
+  div.innerHTML = `
+    <img src="${msg.avatar}" alt="avatar">
+    <div>
+      <strong>${msg.sender}</strong>
+      <p>${msg.text}</p>
     </div>
-  </header>
-
-  <main>
-    <section id="tabs">
-      <button data-tab="chat">💬 Чат</button>
-      <button data-tab="map">🗺 Карта</button>
-      <button data-tab="info">ℹ️ Інформація</button>
-    </section>
-
-    <section id="chat" class="tab active">
-      <div id="messages"></div>
-      <form id="messageForm">
-        <input type="text" id="messageInput" placeholder="Написати повідомлення..." required />
-        <input type="file" id="imageInput" accept="image/*" />
-        <button type="submit">📨</button>
-      </form>
-    </section>
-
-    <section id="map" class="tab">
-      <div id="mapContainer"></div>
-    </section>
-
-    <section id="info" class="tab">
-      <h2>Як користуватись</h2>
-      <p>Цей сервіс допоможе вам знайти волонтерів, аптеку, магазин або лікарню на карті Праги.</p>
-    </section>
-  </main>
-
-  <!-- Модальне вікно -->
-  <div id="authModal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Авторизація</h2>
-      <input type="text" id="nicknameInput" placeholder="Ваш нікнейм" required />
-      <button id="loginBtn">Увійти</button>
-    </div>
-  </div>
-
-  <script type="module" src="firebase/firebase-config.js"></script>
-  <script src="js/app.js" defer></script>
-</body>
-</html>
+  `;
+  messagesContainer.appendChild(div);
+});
