@@ -1,10 +1,10 @@
-// Імпорт Firebase
+// firebase/firebase-config.js
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
 import { getDatabase } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
 
-// Конфігурація
 const firebaseConfig = {
   apiKey: "AIzaSyDV2BslF-Ll37a1XO3GEfzNMXa7YsSXL1o",
   authDomain: "web-app-b4633.firebaseapp.com",
@@ -16,10 +16,10 @@ const firebaseConfig = {
   measurementId: "G-C65BPE81SJ"
 };
 
-// Ініціалізація
+// Ініціалізація Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app);
-const storage = getStorage(app);
 
-export { auth, database, storage };
+// Експортуємо сервіси
+export const auth = getAuth(app);
+export const database = getDatabase(app);
+export const storage = getStorage(app);
