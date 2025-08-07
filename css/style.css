@@ -1,66 +1,101 @@
-herebody {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-image: url('../img/background.jpg');
-  background-size: cover;
-  background-position: center;
-  height: 100vh;
-  overflow: hidden;
-}
-
-#app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 10px;
-  margin: 10px;
-  padding: 10px;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-around;
-  background: #f0f0f0;
-  border-top: 1px solid #ccc;
-}
-
-.navbar button {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
+.send-box button {
+  padding: 10px 16px;
   border: none;
-  background: transparent;
+  border-radius: 8px;
+  background: #00cc99;
+  color: white;
+  font-weight: bold;
   cursor: pointer;
 }
 
-.navbar button.active {
-  background-color: #ddd;
-  font-weight: bold;
+/* Профиль */
+.profile {
+  text-align: center;
+  padding: 20px;
 }
 
-.tab {
+.profile img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #00ffcc;
+}
+
+.profile input[type="file"] {
   display: none;
 }
 
-.tab.active {
-  display: block;
-}
-
-.profile {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: #ffffffd9;
-  padding: 10px;
-  border-radius: 8px;
+.profile label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: #00cc99;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
   font-size: 14px;
 }
 
-.chat-message {
-  background: #e6e6e6;
-  margin: 5px 0;
-  padding: 6px;
+/* Карта */
+#map {
+  width: 100%;
+  height: calc(100vh - 60px);
+}
+
+/* Модальное окно авторизации */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  color: #000;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.modal-content button {
+  background-color: #00cc99;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Личные сообщения */
+.private-message {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #ff66cc;
+  padding: 10px;
+  margin-bottom: 8px;
   border-radius: 6px;
 }
+
+/* Мелкие адаптивные штуки */
+@media screen and (max-width: 768px) {
+  .profile img {
+    width: 80px;
+    height: 80px;
+  }
+  }
