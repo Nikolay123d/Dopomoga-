@@ -1,52 +1,53 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Чат допомоги | Прага</title>
-  <link rel="stylesheet" href="css/style.css" />
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrahaFushki – Pomoc Ukrajincům</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/tabs.js"></script>
+  <script defer src="js/map.js"></script>
+  <script defer src="js/auth.js"></script>
+  <script defer src="firebase/firebase-config.js"></script>
 </head>
 <body>
-
-  <!-- Вкладки -->
   <div class="tabs">
-    <button class="tab-btn active" data-tab="chat">💬 Чат</button>
-    <button class="tab-btn" data-tab="map">🗺️ Карта</button>
-    <button class="tab-btn" data-tab="info">ℹ️ Інфо</button>
+    <button class="tab-button active" onclick="openTab(event, 'chat')">💬 Чат</button>
+    <button class="tab-button" onclick="openTab(event, 'map')">🗺 Карта</button>
+    <button class="tab-button" onclick="openTab(event, 'help')">🚑 Помощь</button>
   </div>
 
-  <!-- Чат -->
   <div id="chat" class="tab-content active">
-    <div id="messages" class="messages"></div>
-    <div class="input-box">
-      <input type="text" id="messageInput" placeholder="Введіть повідомлення..." />
-      <button id="sendBtn">📨</button>
+    <div class="chat-background">
+      <img src="img/Prague.jpg" alt="Прага">
+    </div>
+    <div class="chat-container">
+      <div class="chat-header">PrahaFushki</div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <img class="avatar" src="img/istockphoto-1495088043-612x612.jpg" alt="Avatar">
+        <input type="text" id="messageInput" placeholder="Написать сообщение...">
+        <button onclick="sendMessage()">Отправить</button>
+      </div>
     </div>
   </div>
 
-  <!-- Карта -->
   <div id="map" class="tab-content">
-    <div id="map-container">Карта завантажується...</div>
+    <div id="mapContainer"></div>
+    <div class="map-buttons">
+      <button onclick="filterMarkers('hospital')">🏥 Больницы</button>
+      <button onclick="filterMarkers('lawyer')">⚖️ Юристы</button>
+      <button onclick="filterMarkers('store')">🛒 Магазины</button>
+    </div>
   </div>
 
-  <!-- Інфо -->
-  <div id="info" class="tab-content">
-    <p>Цей чат створений для допомоги українцям у Празі 💛💙</p>
+  <div id="help" class="tab-content">
+    <h2>Горячая помощь</h2>
+    <ul class="help-list">
+      <li><img src="img/palata-vchehii-jpg.webp" alt="Больница"> Больницы</li>
+      <li><img src="img/images-5.jpg" alt="Юристы"> Юристы</li>
+      <li><img src="img/images-6.jpg" alt="Магазины"> Магазины</li>
+    </ul>
   </div>
-
-  <!-- Стили -->
-<link rel="stylesheet" href="css/style.css">
-  <a href="https://ibb.co/vxqZPXKv"><img src="https://i.ibb.co/27hgtZfY/Prague.jpg" alt="Prague" border="0"></a>
-
-<!-- Скрипты -->
-<script src="firebase/firebase-config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/tabs.js"></script>
-<script src="js/map.js"></script>
 </body>
-                            </html>
+</html>
