@@ -3,65 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Допомога у Празі</title>
-
-  <!-- Стили -->
+  <title>Чат допомоги | Прага</title>
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- Firebase SDK -->
-  <script type="module" src="firebase/firebase-config.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js"></script>
 </head>
 <body>
 
-  <div id="app">
-    <!-- Вкладки -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="chat">💬 Чат</button>
-      <button class="tab-btn" data-tab="map">🗺️ Карта</button>
-      <button class="tab-btn" data-tab="info">ℹ️ Інфо</button>
-    </div>
+  <!-- Вкладки -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="chat">💬 Чат</button>
+    <button class="tab-btn" data-tab="map">🗺️ Карта</button>
+    <button class="tab-btn" data-tab="info">ℹ️ Інфо</button>
+  </div>
 
-    <!-- Чат -->
-    <div id="chat" class="tab-content active">
-      <div id="chat-messages" class="chat-messages"></div>
-
-      <div class="chat-input-area">
-        <input type="text" id="message-input" placeholder="Написати повідомлення..." />
-        <button id="sendBtn">📨</button>
-      </div>
-    </div>
-
-    <!-- Карта -->
-    <div id="map" class="tab-content">
-      <div id="map-container" class="map-container">Карта завантажується...</div>
-    </div>
-
-    <!-- Інфо -->
-    <div id="info" class="tab-content">
-      <h2>Інформація</h2>
-      <p>Цей проєкт створено для допомоги українцям у Празі. Тут ви можете знайти:</p>
-      <ul>
-        <li>🔹 Корисні локації на карті</li>
-        <li>🔹 Спільноту для спілкування</li>
-        <li>🔹 Інформацію щодо послуг</li>
-      </ul>
-    </div>
-
-    <!-- Модальне вікно авторизації -->
-    <div id="authModal" class="modal hidden">
-      <div class="modal-content">
-        <h3>Авторизація</h3>
-        <input type="text" id="username" placeholder="Ваше ім’я" />
-        <input type="text" id="userphoto" placeholder="Посилання на фото (необов’язково)" />
-        <button id="loginBtn">Увійти</button>
-      </div>
+  <!-- Чат -->
+  <div id="chat" class="tab-content active">
+    <div id="messages" class="messages"></div>
+    <div class="input-box">
+      <input type="text" id="messageInput" placeholder="Введіть повідомлення..." />
+      <button id="sendBtn">📨</button>
     </div>
   </div>
 
-  <!-- JS -->
-  <script type="module" src="js/auth.js"></script>
-  <script type="module" src="js/tabs.js"></script>
-  <script type="module" src="js/map.js"></script>
-  <script type="module" src="js/chat.js"></script>
+  <!-- Карта -->
+  <div id="map" class="tab-content">
+    <div id="map-container">Карта завантажується...</div>
+  </div>
+
+  <!-- Інфо -->
+  <div id="info" class="tab-content">
+    <p>Цей чат створений для допомоги українцям у Празі 💛💙</p>
+  </div>
+
+  <!-- Скрипти -->
+  <script src="firebase/firebase-config.js"></script>
+  <script src="js/tabs.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/auth.js"></script>
 </body>
-      </html>
+                            </html>
