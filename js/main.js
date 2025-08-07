@@ -1,118 +1,124 @@
-here// Переключение вкладок
-document.querySelectorAll('.tab-button').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(tab => tab.style.display = 'none');
-    document.getElementById(button.dataset.tab).style.display = 'block';
-  });
-});
+import { auth, database, storage } from "../firebase/config.js";
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
+import {
+  ref as dbRef,
+  push,
+  onChildAdded
+} from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
 
-// Firebase инициализация (конфигурация отдельно в firebase/config.js)
-import { app, database, auth, storage } from '../firebase/config.js';
-import { ref, push, onChildAdded } from 'https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js';
-import { uploadBytes, getDownloadURL, ref as storageRef } from 'https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js';
+const chatTab = document.getElementById("chat-tab");
+const mapTab = document.getElementById("map-tab");
+const infoTab = document.getElementById("info-tab");
 
-const chatList = document.getElementById('chat-messages');
-const chatForm = document.getElementById('chat-form');
-const messageInput = document.getElementById('message');
-const loginModal = document.getElementById('login-modal');
-const loginButton = document.getElementById('login-button');
-const avatarInput = document.getElementById('avatar');
-const nameInput = document.getElementById('nickname');
-const profileImage = document.getElementById('profile-image');
-const profileName = document.getElementById('profile-name');
+const chatSection = document.getElementById("chat-section");
+const mapSection = document.getElementById("map-section");
+const infoSection = document.getElementById("info-section");
 
-const messagesRef = ref(database, 'messages');
+const loginModal = document.getElementById("login-modal");
+const sendButton = document.getElementById("send-button");
+const messageInput = document.getElementById("message-input");
+const messagesContainer = document.getElementById("messages");
 
-// Авторизация
+const nameInput = document.getElementById("nickname");
+const profileImage = document.getElementById("profile-image");
+const profileUpload = document.getElementById("profile-upload");
+
+// Навигация по вкладкам
+chatTab.onclick = () => {
+  showSection(chatSection);
+};
+mapTab.onclick = () => {
+  showSection(mapSection);
+};
+infoTab.onclick = () => {
+  showSection(infoSection);
+};
+
+function showSection(section) {
+  chatSection.style.display = "none";
+  mapSection.style.display = "none";
+  infoSection.style.display = "none";
+  section.style.display = "block";
+}
+
+// Проверка авторизации
 onAuthStateChanged(auth, user => {
   if (user) {
-    localStorage.setItem('user', JSON.stringify({
-      uid: user.uid,
-      name: user.displayName || nameInput.value || 'Гість',
-      photoURL: user.photoURL || 'img/default-avatar.png'
-    }));
-    updateProfileUI();
-    loginModal.style.display = 'none';
+    localStorage.setItem("user", JSON.stringify(user));
+    loginModal.style.display = "none";
   } else {
-    if (!localStorage.getItem('user')) {
-      loginModal.style.display = 'flex';
-    }
+    localStorage.removeItem("user");
+    loginModal.style.display = "block";
   }
 });
 
-loginButton.addEventListener('click', async () => {
+// Авторизация через Google
+document.getElementById("google-login").addEventListener("click", () => {
   const provider = new GoogleAuthProvider();
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (error) {
-    alert('Помилка авторизації: ' + error.message);
-  }
+  signInWithPopup(auth, provider);
 });
 
-// Отправка сообщений
-chatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const user = JSON.parse(localStorage.getItem('user'));
+// Отправка сообщения
+sendButton.onclick = async () => {
+  const user = JSON.parse(localStorage.getItem("user"));
   if (!user) {
-    loginModal.style.display = 'flex';
+    loginModal.style.display = "block";
     return;
   }
 
+  const nickname = nameInput.value || "Анонім";
   const text = messageInput.value.trim();
-  if (text === '') return;
+  if (text === "") return;
 
-  const messageData = {
-    name: user.name,
-    photo: user.photoURL,
-    text,
+  const message = {
+    uid: user.uid,
+    nickname: nickname,
+    text: text,
     timestamp: Date.now()
   };
 
-  await push(messagesRef, messageData);
-  messageInput.value = '';
+  await push(dbRef(database, "messages"), message);
+  messageInput.value = "";
+};
+
+// Загрузка сообщений
+onChildAdded(dbRef(database, "messages"), snapshot => {
+  const msg = snapshot.val();
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message");
+  messageElement.innerHTML = `<strong>${msg.nickname}</strong>: ${msg.text}`;
+  messagesContainer.appendChild(messageElement);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 });
 
-// Получение сообщений
-onChildAdded(messagesRef, (data) => {
-  const msg = data.val();
-  const msgDiv = document.createElement('div');
-  msgDiv.classList.add('chat-message');
-  msgDiv.innerHTML = `
-    <img src="${msg.photo}" alt="avatar">
-    <div><strong>${msg.name}</strong><p>${msg.text}</p></div>
-  `;
-  chatList.appendChild(msgDiv);
-  chatList.scrollTop = chatList.scrollHeight;
-});
-
-// Обновление UI профиля
-function updateProfileUI() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (user) {
-    profileImage.src = user.photoURL;
-    profileName.textContent = user.name;
-  }
-}
-
-// Загрузка фото аватара
-avatarInput.addEventListener('change', async (e) => {
+// Загрузка аватарки
+profileUpload.addEventListener("change", async e => {
   const file = e.target.files[0];
   if (!file) return;
-  const user = JSON.parse(localStorage.getItem('user'));
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
+
   const storageReference = storageRef(storage, `avatars/${user.uid}`);
   await uploadBytes(storageReference, file);
-  const photoURL = await getDownloadURL(storageReference);
-
-  user.photoURL = photoURL;
-  localStorage.setItem('user', JSON.stringify(user));
-  updateProfileUI();
+  const url = await getDownloadURL(storageReference);
+  profileImage.src = url;
+  localStorage.setItem("avatar", url);
 });
 
-// Установка ника
-nameInput.addEventListener('change', () => {
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  user.name = nameInput.value;
-  localStorage.setItem('user', JSON.stringify(user));
-  updateProfileUI();
+// Показать сохранённую аватарку
+window.addEventListener("DOMContentLoaded", () => {
+  const savedAvatar = localStorage.getItem("avatar");
+  if (savedAvatar) {
+    profileImage.src = savedAvatar;
+  }
 });
