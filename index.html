@@ -1,53 +1,127 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PrahaFushki – Pomoc Ukrajincům</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script defer src="js/tabs.js"></script>
-  <script defer src="js/map.js"></script>
-  <script defer src="js/auth.js"></script>
-  <script defer src="firebase/firebase-config.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PrahaFushki — Помощь украинцам</title>
+
+  <!-- Общие стили -->
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
-  <div class="tabs">
-    <button class="tab-button active" onclick="openTab(event, 'chat')">💬 Чат</button>
-    <button class="tab-button" onclick="openTab(event, 'map')">🗺 Карта</button>
-    <button class="tab-button" onclick="openTab(event, 'help')">🚑 Помощь</button>
-  </div>
+  <!-- Фон (прикрывается chat фоновой картинкой в CSS) -->
+  <div class="chat-background" aria-hidden="true"></div>
 
-  <div id="chat" class="tab-content active">
-    <div class="chat-background">
-      <img src="img/Prague.jpg" alt="Прага">
+  <!-- Навигация -->
+  <nav class="tabs" role="tablist" aria-label="Вкладки">
+    <button class="tab-button active" data-target="chatTab" aria-selected="true">💬 Чат</button>
+    <button class="tab-button" data-target="mapTab">🗺 Карта</button>
+    <button class="tab-button" data-target="helpTab">🤝 Помощь</button>
+  </nav>
+
+  <!-- ######### ЧАТ (по умолчанию) ######### -->
+  <main id="chatTab" class="tab-content active" role="region" aria-label="Чат">
+    <header class="chat-header">
+      <h1>PrahaFushki</h1>
+      <p class="subtitle">Приветствую вас, дорогие украинцы. Этот чат создан, чтобы помогать нашим согражданам.</p>
+    </header>
+
+    <section id="chatArea" class="chat-area" aria-live="polite">
+      <div id="messages" class="messages" role="log"></div>
+    </section>
+
+    <div class="chat-input">
+      <label for="fileInput" class="camera-btn" title="Добавить фото">
+        <!-- камера как inline SVG (не нужен внешний файл) -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7H6L7 5H17L18 7H20C21.1 7 22 7.9 22 9V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V9C2 7.9 2.9 7 4 7Z" stroke="#2d3436" stroke-width="1.2" fill="#fff"/>
+          <circle cx="12" cy="13" r="3.5" stroke="#2d3436" stroke-width="1.2" fill="#fff"/>
+        </svg>
+      </label>
+      <input id="fileInput" type="file" accept="image/*" style="display:none" />
+
+      <input id="messageInput" type="text" inputmode="text" placeholder="Напишите сообщение..." aria-label="Текст сообщения" />
+      <button id="sendButton" class="send-btn">Отправить</button>
     </div>
-    <div class="chat-container">
-      <div class="chat-header">PrahaFushki</div>
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input">
-        <img class="avatar" src="img/istockphoto-1495088043-612x612.jpg" alt="Avatar">
-        <input type="text" id="messageInput" placeholder="Написать сообщение...">
-        <button onclick="sendMessage()">Отправить</button>
+  </main>
+
+  <!-- ######### КАРТА ######### -->
+  <section id="mapTab" class="tab-content" role="region" aria-label="Карта помощи" style="display:none;">
+    <div class="map-controls">
+      <div class="filter-buttons">
+        <button data-cat="all" class="filter-btn active">🔁 Все</button>
+        <button data-cat="hospital" class="filter-btn">🏥 Больницы</button>
+        <button data-cat="lawyer" class="filter-btn">⚖️ Юристы</button>
+        <button data-cat="shop" class="filter-btn">🛒 Магазины</button>
+        <button data-cat="help" class="filter-btn">🤝 Центры</button>
       </div>
+      <div class="hotkeys-note">Горячие клавиши: <b>C</b>=Чат <b>M</b>=Карта <b>H</b>=Помощь</div>
+    </div>
+    <div id="map" class="map-canvas" role="application"></div>
+  </section>
+
+  <!-- ######### ПОМОЩЬ ######### -->
+  <section id="helpTab" class="tab-content" role="region" aria-label="Помощь" style="display:none;">
+    <h2>Горячая помощь для украинцев в Праге</h2>
+    <div class="help-grid" id="helpGrid">
+      <!-- карточки генерируются help.js, но добавлю 3 статичных примера -->
+      <article class="help-card">
+        <img src="./img/palata-vchehii-jpg.webp" alt="Больница">
+        <h3>Медпомощь — Nemocnice Motol</h3>
+        <p>Главная больница Праги. Адрес: V Úvalu 84</p>
+      </article>
+
+      <article class="help-card">
+        <img src="./img/images-5.jpg" alt="Юридическая помощь">
+        <h3>Юридическая консультация</h3>
+        <p>Помощь с документами и правовыми вопросами.</p>
+      </article>
+
+      <article class="help-card">
+        <img src="./img/images-6.jpg" alt="Магазин">
+        <h3>Украинский магазин</h3>
+        <p>Продукты и товары для украинцев.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ######### МОДАЛКА АВТОРИЗАЦИИ (всплывает при первой попытке отправить) ######### -->
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal-close" id="modalClose" aria-label="Закрыть">✕</button>
+      <h2 id="authTitle">Регистрация / Вход</h2>
+
+      <form id="registerForm" class="auth-form">
+        <input id="nickInput" type="text" placeholder="Никнейм" required />
+        <input id="emailInput" type="email" placeholder="Email" required />
+        <input id="passwordInput" type="password" placeholder="Пароль" required />
+        <div class="auth-actions">
+          <button id="registerSubmit" type="button">Зарегистрироваться</button>
+          <button id="loginShow" type="button">Уже есть аккаунт — Войти</button>
+        </div>
+        <p class="note">После регистрации у вас 6 часов доступа без подтверждения email, затем доступ — только после подтверждения почты.</p>
+      </form>
+
+      <form id="loginForm" class="auth-form" style="display:none">
+        <input id="loginEmail" type="email" placeholder="Email" required />
+        <input id="loginPassword" type="password" placeholder="Пароль" required />
+        <div class="auth-actions">
+          <button id="loginSubmit" type="button">Войти</button>
+          <button id="backToRegister" type="button">Назад</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <div id="map" class="tab-content">
-    <div id="mapContainer"></div>
-    <div class="map-buttons">
-      <button onclick="filterMarkers('hospital')">🏥 Больницы</button>
-      <button onclick="filterMarkers('lawyer')">⚖️ Юристы</button>
-      <button onclick="filterMarkers('store')">🛒 Магазины</button>
-    </div>
-  </div>
+  <!-- Firebase modules + наши скрипты (module) -->
+  <script type="module" src="./js/firebase-config.js"></script>
+  <script type="module" src="./js/auth.js"></script>
+  <script type="module" src="./js/chat.js"></script>
+  <script type="module" src="./js/tabs.js"></script>
+  <script type="module" src="./js/help.js"></script>
 
-  <div id="help" class="tab-content">
-    <h2>Горячая помощь</h2>
-    <ul class="help-list">
-      <li><img src="img/palata-vchehii-jpg.webp" alt="Больница"> Больницы</li>
-      <li><img src="img/images-5.jpg" alt="Юристы"> Юристы</li>
-      <li><img src="img/images-6.jpg" alt="Магазины"> Магазины</li>
-    </ul>
-  </div>
+  <!-- Google Maps (callback = initMap). Я вставил твой ключ -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AlzaSyBFrxVhpb6nHJ6rhiL15&callback=initMap"></script>
+  <script type="module" src="./js/map.js"></script>
 </body>
 </html>
