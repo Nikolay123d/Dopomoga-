@@ -21,7 +21,7 @@ body{
 .chat-background{
   position:fixed;
   inset:0;
-  background-image: url('../img/Prague.jpg');
+  background-image: url('Prague.jpg');
   background-size: cover;
   background-position: center;
   filter: brightness(0.55);
